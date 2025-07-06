@@ -1,5 +1,10 @@
 import express from 'express';
 import cors from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -8,11 +13,12 @@ const PORT = process.env.PORT || 5000;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// CORS configuration for Firebase frontend
+// CORS configuration
 app.use(cors({
   origin: [
     'http://localhost:3000',
     'http://localhost:5173',
+    'http://localhost:5000',
     // Firebase hosting domains
     'https://teste3-38581.web.app',
     'https://teste3-38581.firebaseapp.com'
@@ -21,6 +27,10 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
+
+// Serve static files from the React build
+const buildPath = path.join(__dirname, '../dist/public');
+app.use(express.static(buildPath));
 
 // API routes
 app.get('/api/health', (req, res) => {
@@ -65,26 +75,19 @@ app.get('/api/providers', (req, res) => {
   ]);
 });
 
-app.get('/', (req, res) => {
-  res.json({ 
-    message: 'ServiceHub API Server', 
-    version: '1.0.0',
-    endpoints: [
-      'GET /api/health',
-      'GET /api/categories',
-      'GET /api/providers'
-    ],
-    frontend: 'Hosted on Firebase',
-    firebaseConfig: {
-      authDomain: 'teste3-38581.firebaseapp.com',
-      projectId: 'teste3-38581'
-    }
-  });
+// Catch all handler: send back React's index.html file for any non-API routes
+app.get('*', (req, res) => {
+  // Skip API routes
+  if (req.path.startsWith('/api/')) {
+    return res.status(404).json({ error: 'API endpoint not found' });
+  }
+  
+  res.sendFile(path.join(buildPath, 'index.html'));
 });
 
 app.listen(PORT, () => {
-  console.log(`🚀 ServiceHub API Server running on port ${PORT}`);
-  console.log(`📡 API available at http://localhost:${PORT}`);
-  console.log(`🔥 Frontend hosted on Firebase: https://teste3-38581.web.app`);
-  console.log(`🌐 CORS configured for Firebase domains`);
+  console.log(`🚀 ServiceHub Full-Stack Server running on port ${PORT}`);
+  console.log(`📱 Frontend: http://localhost:${PORT}`);
+  console.log(`📡 API: http://localhost:${PORT}/api`);
+  console.log(`🔥 Also available on Firebase: https://teste3-38581.web.app`);
 });
