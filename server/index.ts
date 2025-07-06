@@ -13,9 +13,9 @@ app.use(cors({
   origin: [
     'http://localhost:3000',
     'http://localhost:5173',
-    // Add your Firebase hosting domain here
-    // 'https://your-project.web.app',
-    // 'https://your-project.firebaseapp.com'
+    // Firebase hosting domains
+    'https://teste3-38581.web.app',
+    'https://teste3-38581.firebaseapp.com'
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -74,12 +74,17 @@ app.get('/', (req, res) => {
       'GET /api/categories',
       'GET /api/providers'
     ],
-    frontend: 'Hosted on Firebase'
+    frontend: 'Hosted on Firebase',
+    firebaseConfig: {
+      authDomain: 'teste3-38581.firebaseapp.com',
+      projectId: 'teste3-38581'
+    }
   });
 });
 
 app.listen(PORT, () => {
   console.log(`🚀 ServiceHub API Server running on port ${PORT}`);
   console.log(`📡 API available at http://localhost:${PORT}`);
-  console.log(`🔥 Frontend hosted on Firebase`);
+  console.log(`🔥 Frontend hosted on Firebase: https://teste3-38581.web.app`);
+  console.log(`🌐 CORS configured for Firebase domains`);
 });
