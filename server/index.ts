@@ -1,9 +1,5 @@
 import express from 'express';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+import cors from 'cors';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -12,49 +8,78 @@ const PORT = process.env.PORT || 5000;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// CORS for development
-if (process.env.NODE_ENV === 'development') {
-  app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', 'http://localhost:5173');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-    res.header('Access-Control-Allow-Credentials', 'true');
-    
-    if (req.method === 'OPTIONS') {
-      res.sendStatus(200);
-    } else {
-      next();
-    }
-  });
-}
+// CORS configuration for Firebase frontend
+app.use(cors({
+  origin: [
+    'http://localhost:3000',
+    'http://localhost:5173',
+    // Add your Firebase hosting domain here
+    // 'https://your-project.web.app',
+    // 'https://your-project.firebaseapp.com'
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+}));
 
 // API routes
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  res.json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(),
+    message: 'ServiceHub API is running'
+  });
 });
 
-// Serve static files in production
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(join(__dirname, '../dist/public')));
-  
-  app.get('*', (req, res) => {
-    res.sendFile(join(__dirname, '../dist/public/index.html'));
+// ServiceHub API endpoints
+app.get('/api/categories', (req, res) => {
+  res.json([
+    { id: 1, name: 'Limpeza', icon: '🧹', color: '#3B82F6' },
+    { id: 2, name: 'Reparos', icon: '🔧', color: '#10B981' },
+    { id: 3, name: 'Jardinagem', icon: '🌱', color: '#F59E0B' },
+    { id: 4, name: 'Pintura', icon: '🎨', color: '#8B5CF6' },
+    { id: 5, name: 'Elétrica', icon: '⚡', color: '#EF4444' }
+  ]);
+});
+
+app.get('/api/providers', (req, res) => {
+  res.json([
+    {
+      id: 1,
+      name: 'João Silva',
+      category: 'Limpeza',
+      rating: 4.8,
+      reviews: 127,
+      location: 'São Paulo, SP',
+      price: 'R$ 50/hora'
+    },
+    {
+      id: 2,
+      name: 'Maria Santos',
+      category: 'Reparos',
+      rating: 4.9,
+      reviews: 89,
+      location: 'Rio de Janeiro, RJ',
+      price: 'R$ 80/hora'
+    }
+  ]);
+});
+
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'ServiceHub API Server', 
+    version: '1.0.0',
+    endpoints: [
+      'GET /api/health',
+      'GET /api/categories',
+      'GET /api/providers'
+    ],
+    frontend: 'Hosted on Firebase'
   });
-} else {
-  // Development mode - API only
-  app.get('/', (req, res) => {
-    res.json({ 
-      message: 'ServiceHub API Server', 
-      mode: 'development',
-      frontend: 'Run `npm run dev:client` to start the frontend'
-    });
-  });
-}
+});
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-  if (process.env.NODE_ENV === 'development') {
-    console.log('API available at http://localhost:5000');
-    console.log('Run the frontend with: npm run dev:client');
-  }
+  console.log(`🚀 ServiceHub API Server running on port ${PORT}`);
+  console.log(`📡 API available at http://localhost:${PORT}`);
+  console.log(`🔥 Frontend hosted on Firebase`);
 });
